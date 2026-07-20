@@ -2,11 +2,16 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/app_update.dart';
 
 class UpdateService {
-  UpdateService({Dio? dio}) : _dio = dio ?? Dio();
+  UpdateService({
+    Dio? dio,
+    Future<Directory> Function()? cacheDirectory,
+  })  : _dio = dio ?? Dio(),
+        _cacheDirectory = cacheDirectory ?? getTemporaryDirectory;
 
   static const latestReleaseUrl =
       'https://github.com/mateo-ki/MeloBoxApp/releases/latest';
@@ -14,6 +19,7 @@ class UpdateService {
   static const _platform = MethodChannel('melobox/update_installer');
 
   final Dio _dio;
+  final Future<Directory> Function() _cacheDirectory;
 
   Future<String> currentVersion() async {
     return await _platform.invokeMethod<String>('getCurrentVersion') ?? '0.0.0';
@@ -56,9 +62,15 @@ class UpdateService {
     AppUpdate update, {
     ProgressCallback? onReceiveProgress,
   }) async {
-    final directory = await Directory.systemTemp.createTemp('melobox_update_');
+    final cacheDirectory = await _cacheDirectory();
+    final directory = Directory(
+      '${cacheDirectory.path}${Platform.pathSeparator}melobox_update',
+    );
+    await directory.create(recursive: true);
     final safeName = update.apkName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    final file = File('${directory.path}/$safeName');
+    final file = File(
+      '${directory.path}${Platform.pathSeparator}$safeName',
+    );
     await _dio.download(
       update.apkUrl,
       file.path,
