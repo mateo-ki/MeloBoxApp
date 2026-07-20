@@ -4,6 +4,7 @@ import '../providers/favorite_provider.dart';
 import '../providers/play_history_provider.dart';
 import '../providers/search_history_provider.dart';
 import 'about_screen.dart';
+import '../services/update_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -152,7 +153,12 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.text_snippet_outlined),
             title: const Text('版本'),
-            trailing: const Text('1.0.0'),
+            trailing: FutureBuilder<String>(
+              future: UpdateService().currentVersion(),
+              builder: (context, snapshot) => Text(
+                snapshot.data ?? '-',
+              ),
+            ),
           ),
         ],
       ),

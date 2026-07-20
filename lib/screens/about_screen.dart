@@ -1,7 +1,45 @@
 import 'package:flutter/material.dart';
 
-class AboutScreen extends StatelessWidget {
+import '../services/update_service.dart';
+import '../widgets/app_update_prompt.dart';
+
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  final UpdateService _updateService = UpdateService();
+  late final Future<String> _currentVersion = _updateService.currentVersion();
+  bool _checking = false;
+
+  Future<void> _checkForUpdate() async {
+    if (_checking) return;
+    setState(() => _checking = true);
+    try {
+      final update = await _updateService.checkForUpdate();
+      if (!mounted) return;
+      if (update == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('当前已是最新版本')),
+        );
+        return;
+      }
+      await showAppUpdatePrompt(context, update, service: _updateService);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('检查更新失败：$error')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _checking = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +80,26 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 8),
 
             // 版本号
-            Text(
-              'Version 1.0.0',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+            FutureBuilder<String>(
+              future: _currentVersion,
+              builder: (context, snapshot) => Text(
+                snapshot.hasData ? 'Version ${snapshot.data}' : 'Version',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
               ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _checking ? null : _checkForUpdate,
+              icon: _checking
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.system_update_alt),
+              label: Text(_checking ? '正在检查...' : '检查更新'),
             ),
             const SizedBox(height: 32),
 

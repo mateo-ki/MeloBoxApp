@@ -11,6 +11,7 @@ import 'providers/category_provider.dart';
 import 'providers/music_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/theme.dart';
+import 'widgets/app_update_prompt.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        home: const HomeScreen(),
+        home: const AppUpdateChecker(child: HomeScreen()),
       ),
     );
   }
