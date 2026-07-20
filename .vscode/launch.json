@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "melobox_app",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "melobox_app (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "melobox_app (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许所有明文流量（HTTP） -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- 允许特定域名的明文流量 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">lzipic.com</domain>
+        <domain includeSubdomains="true">cdnlz18.com</domain>
+        <domain includeSubdomains="true">cdnlz13.com</domain>
+        <domain includeSubdomains="true">cdnlz7.com</domain>
+        <domain includeSubdomains="true">cdnlz21.com</domain>
+        <domain includeSubdomains="true">lzcdn23.com</domain>
+        <domain includeSubdomains="true">lzcdn28.com</domain>
+        <domain includeSubdomains="true">lzcdn31.com</domain>
+        <domain includeSubdomains="true">v.cdnlz18.com</domain>
+        <domain includeSubdomains="true">v.lzcdn23.com</domain>
+        <domain includeSubdomains="true">v.lzcdn28.com</domain>
+        <domain includeSubdomains="true">v.lzcdn31.com</domain>
+        <domain includeSubdomains="true">img.lzipic.com</domain>
+    </domain-config>
+</network-security-config>
