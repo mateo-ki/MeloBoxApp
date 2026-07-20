@@ -56,6 +56,9 @@ app.*.map.json
 /android/app/build/
 /android/build/
 /android/.cxx/
+/android/key.properties
+/android/app/*.jks
+/android/app/*.keystore
 
 # iOS related
 **/ios/**/*.mode1v3

@@ -40,20 +40,45 @@ jobs:
     - name: 安装依赖
       run: flutter pub get
 
+    - name: 配置固定 APK 签名
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      run: |
+        if [ ${#ANDROID_KEYSTORE_BASE64} -eq 0 ]; then
+          echo ANDROID_KEYSTORE_BASE64 secret is missing
+          exit 1
+        fi
+        printf %s ${ANDROID_KEYSTORE_BASE64} | base64 --decode > ${RUNNER_TEMP}/melobox-release.keystore
+
     # 使用上面解析出来的版本号和 GitHub 自动递增的构建号进行编译
     - name: 编译正式版 APK
+      env:
+        ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/melobox-release.keystore
+        ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       run: |
         flutter build apk --release \
           --build-name=${{ steps.get_version.outputs.version_name }} \
           --build-number=${{ steps.get_version.outputs.build_number }}
+
+    - name: 验证 APK 签名
+      run: |
+        APKSIGNER=$(find ${ANDROID_HOME}/build-tools -name apksigner | sort -V | tail -n 1)
+        ACTUAL_CERT=$(${APKSIGNER} verify --print-certs build/app/outputs/flutter-apk/app-release.apk | grep -oE '[0-9a-f]{64}' | head -n 1)
+        EXPECTED_CERT=9050c476886c3507cbd8e46c08ed808d1b6b93c7ea5266c63b0acd59f511ccab
+        if [ x${ACTUAL_CERT} != x${EXPECTED_CERT} ]; then
+          echo APK signer mismatch: ${ACTUAL_CERT}
+          exit 1
+        fi
 
     # 自动在 GitHub 上创建一个 Release 页面，并将编译好的 APK 挂载上去
     - name: 创建 GitHub Release 并上传 APK
       uses: softprops/action-gh-release@v2
       with:
         files: build/app/outputs/flutter-apk/app-release.apk
-        name: MeloBoxApp ${{ env.GITHUB_REF_NAME }}
-        tag_name: ${{ env.GITHUB_REF_NAME }}
+        name: MeloBoxApp ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
         draft: false
         prerelease: false
       env:
