@@ -43,14 +43,26 @@ class UpdateService {
     final version = normalizeAppVersion(tag);
     final releaseUrl = Uri.parse(latestReleaseUrl).resolve(location).toString();
     final encodedTag = Uri.encodeComponent(tag);
+    final apkUrl = 'https://github.com/mateo-ki/MeloBoxApp/releases/download/'
+        '$encodedTag/$_apkName';
+    final assetResponse = await _dio.head<void>(
+      apkUrl,
+      options: Options(
+        followRedirects: false,
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
+    final assetStatus = assetResponse.statusCode;
+    if (assetStatus == null || assetStatus < 200 || assetStatus >= 400) {
+      return null;
+    }
     final update = AppUpdate(
       version: version,
       title: 'MeloBox $version',
       notes: '',
       releaseUrl: releaseUrl,
       apkName: _apkName,
-      apkUrl:
-          'https://github.com/mateo-ki/MeloBoxApp/releases/download/$encodedTag/$_apkName',
+      apkUrl: apkUrl,
     );
     final installedVersion = await currentVersion();
     return compareAppVersions(update.version, installedVersion) > 0
